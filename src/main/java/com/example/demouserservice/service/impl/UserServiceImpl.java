@@ -9,7 +9,6 @@ import com.example.demouserservice.service.UserService;
 import com.example.demouserservice.utils.RegexUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
@@ -123,6 +122,12 @@ public class UserServiceImpl implements UserService {
             return Result.fail("手机号格式错误");
         }
         //3.从redis获取验证码并校验
+        String cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
+        String code = loginFormDto.getCode();
+        if (cacheCode == null || !cacheCode.equals(code)) {
+            //3.1 不一致，返回错误信息
+            return Result.fail("信息验证失败");
+        }
         //4.一致，根据手机号查询用户 select * from demo-user-service where phone = ?
         //5.判断用户是否存在
         //6.不存在，创建新用户并保存
