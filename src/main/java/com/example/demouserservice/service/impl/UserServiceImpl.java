@@ -34,8 +34,8 @@ public class UserServiceImpl implements UserService {
     @Resource
     private UserDao userDao;
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
@@ -108,7 +108,7 @@ public class UserServiceImpl implements UserService {
         //3.符合，生成随机验证码
         String code = RandomUtil.randomNumbers(6);
         //4.保存验证码到redis set key value ex 120 （ex 120 表示有效期120秒）
-        redisTemplate.opsForValue().set(LOGIN_CODE_KEY +  phone, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY +  phone, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
         //5.发送验证码
         logger.info("发送短信验证码成功，验证码：{}", code);
         return Result.ok();
