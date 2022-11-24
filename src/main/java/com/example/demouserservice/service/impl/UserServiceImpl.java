@@ -1,26 +1,30 @@
 package com.example.demouserservice.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
+import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
-import com.example.demouserservice.dto.LoginFormDto;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.demouserservice.dao.mapper.UserMapper;
+import com.example.demouserservice.dto.LoginFormDTO;
 import com.example.demouserservice.dto.Result;
+import com.example.demouserservice.dto.UserDTO;
 import com.example.demouserservice.entity.User;
-import com.example.demouserservice.dao.UserDao;
 import com.example.demouserservice.service.UserService;
 import com.example.demouserservice.utils.RegexUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
-
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.example.demouserservice.constants.RedisConstants.*;
+import static com.example.demouserservice.utils.DateUtil.generationDateTime;
+import static com.example.demouserservice.utils.UserIdProduceUtil.userId;
 
 /**
  * (User)表服务实现类
@@ -29,9 +33,7 @@ import static com.example.demouserservice.constants.RedisConstants.*;
  * @since 2022-11-23 11:22:07
  */
 @Service("userService")
-public class UserServiceImpl implements UserService {
-    @Resource
-    private UserDao userDao;
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
@@ -39,66 +41,12 @@ public class UserServiceImpl implements UserService {
     private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     /**
-     * 通过ID查询单条数据
-     *
-     * @param id 主键
-     * @return 实例对象
+     * 发送验证码
+     * @param phone
+     * @return
      */
     @Override
-    public User queryById(Long id) {
-        return this.userDao.queryById(id);
-    }
-
-    /**
-     * 分页查询
-     *
-     * @param user 筛选条件
-     * @param pageRequest      分页对象
-     * @return 查询结果
-     */
-    @Override
-    public Page<User> queryByPage(User user, PageRequest pageRequest) {
-        long total = this.userDao.count(user);
-        return new PageImpl<>(this.userDao.queryAllByLimit(user, pageRequest), pageRequest, total);
-    }
-
-    /**
-     * 新增数据
-     *
-     * @param user 实例对象
-     * @return 实例对象
-     */
-    @Override
-    public User insert(User user) {
-        this.userDao.insert(user);
-        return user;
-    }
-
-    /**
-     * 修改数据
-     *
-     * @param user 实例对象
-     * @return 实例对象
-     */
-    @Override
-    public User update(User user) {
-        this.userDao.update(user);
-        return this.queryById(user.getId());
-    }
-
-    /**
-     * 通过主键删除数据
-     *
-     * @param id 主键
-     * @return 是否成功
-     */
-    @Override
-    public boolean deleteById(Long id) {
-        return this.userDao.deleteById(id) > 0;
-    }
-
-    @Override
-    public Result sendCode(String phone, HttpSession session) {
+    public Result sendCode(String phone) {
         //1.校验手机号
         if (RegexUtil.isPhoneInvalid(phone)) {
             //2.如果不符合，返回错误信息
@@ -114,31 +62,66 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Result login(LoginFormDto loginFormDto, HttpSession session) {
+    public Result loginByPassword(LoginFormDTO loginFormDTO) {
+
+        return Result.ok();
+    }
+
+    @Override
+    public Result register(User user) {
+        //1.判断用户是否已经注册
+        User oldUser = query().eq("phone", user.getPhone()).one();
+        if (oldUser != null) {
+            return Result.fail("用户已存在！");
+        }
+        //2.对用户传进来的参数进行封装
+        user.setId(userId());
+        user.setCreateTime(generationDateTime());
+        save(user);
+        logger.info("{}用户注册成功!", user.getNickName());
+        return Result.ok("注册成功！");
+    }
+
+    /**
+     * 通过手机验证码登录
+     * @param loginFormDTO
+     * @return
+     */
+    @Override
+    public Result loginByCode(LoginFormDTO loginFormDTO) {
         //1.校验手机号
-        String phone = loginFormDto.getPhone();
+        String phone = loginFormDTO.getPhone();
         if (RegexUtil.isPhoneInvalid(phone)) {
             //2.如果不符合，返回错误信息
             return Result.fail("手机号格式错误");
         }
         //3.从redis获取验证码并校验
         String cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
-        String code = loginFormDto.getCode();
+        String code = loginFormDTO.getCode();
+        //3.1选择登录方式（验证码或者密码）
         if (cacheCode == null || !cacheCode.equals(code)) {
             //3.1 不一致，返回错误信息
-            return Result.fail("信息验证失败");
+            return Result.fail("验证码错误");
         }
-        //4.一致，根据手机号查询用户 select * from demo-user-service where phone = ?
-        //5.判断用户是否存在
-        //6.不存在，创建新用户并保存
+        //4.一致，根据手机号查询用户 select * from demo-user-service where phone = ? (这里的query方法需要继承mybatis里面的ServiceImpl实现类）
+        User user = query().eq("phone", phone).one();
+        //5.判断用户是否存在'
+        if (user == null) {
+            //6.不存在，创建新用户并保存到数据库
+            return Result.fail("用户尚未注册，请注册后登录");
+        }
         //7.保存用户信息到redis中
         //7.1随机生成token，作为登录令牌
+        String token = UUID.randomUUID().toString(true);
         //7.2 将User对象转为HashMap存储
+        UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
+        Map<String, Object> userMap = BeanUtil.beanToMap(userDTO, new HashMap<>(), CopyOptions.create().setIgnoreNullValue(true).setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
         //7.3 存储
+        stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + token, userMap);
         //7.4 设置token有效期
+        stringRedisTemplate.expire(LOGIN_USER_KEY + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
         //8.返回token
-        return null;
+        logger.info("登录成功");
+        return Result.ok(token);
     }
-
-
 }

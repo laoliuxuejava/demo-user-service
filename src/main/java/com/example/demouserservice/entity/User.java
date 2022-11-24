@@ -1,20 +1,23 @@
 package com.example.demouserservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+
 import java.util.Date;
-import java.io.Serializable;
 
 /**
  * (User)实体类
  *
  * @author makejava
- * @since 2022-11-23 15:32:50
+ * @since 2022-11-24 16:47:04
  */
-public class User implements Serializable {
-    private static final long serialVersionUID = -37511010141282115L;
+public class User {
+    private static final long serialVersionUID = 143996525303347145L;
     /**
-     * 用户id
+     * 用户id,系统自动生成
      */
-    private Long id;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String id;
     /**
      * 用户昵称
      */
@@ -24,7 +27,7 @@ public class User implements Serializable {
      */
     private String sex;
     /**
-     * 出生日期
+     * 年龄
      */
     private Integer age;
     /**
@@ -42,22 +45,25 @@ public class User implements Serializable {
     /**
      * 账户头像
      */
-    private String icon;
+    @Builder.Default
+    private String icon = "https://cn.bing.com/images/search?q=%e5%a4%b4%e5%83%8f&id=B7D4FD37CAE8DBF666B9B700A835C602789CC3FA&FORM=IQFRBA";
     /**
      * 用户注册时间
      */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Date createTime;
     /**
      * 信息更新时间
      */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Date updateTime;
 
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

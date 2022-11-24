@@ -19,5 +19,3 @@ spring:
         max-idle: 10
         time-between-eviction-runs: 10s
 
-mybatis-plus:
-  mapper-locations: classpath:mapper/*Dao.xml
