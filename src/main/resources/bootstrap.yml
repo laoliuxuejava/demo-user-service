@@ -1,5 +1,12 @@
 server:
-  port: 8080
+  port: 1225
 spring:
   application:
     name: user-service
+  cloud:
+    nacos:
+      server-addr: 192.168.191.1:8845
+      discovery:
+        namespace: 37d037a0-8a4e-41e1-80c6-2a0dbbe03a8e  #namespace的ID
+        cluster-name: SH #集群名称
+        enabled: true

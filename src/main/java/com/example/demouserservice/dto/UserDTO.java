@@ -7,5 +7,8 @@ package com.example.demouserservice.dto;
 public class UserDTO {
     private String id;
     private String nickName;
+    private String sex;
+    private Integer age;
+    private String address;
     private String icon;
 }

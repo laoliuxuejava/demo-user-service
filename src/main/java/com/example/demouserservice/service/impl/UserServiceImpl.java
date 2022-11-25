@@ -61,12 +61,52 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return Result.ok();
     }
 
+    /**
+     * 通过密码登录
+     * @param loginFormDTO
+     * @return
+     */
     @Override
     public Result loginByPassword(LoginFormDTO loginFormDTO) {
-
-        return Result.ok();
+        //1.获取手机号，并校验手机号格式
+        String phone = loginFormDTO.getPhone();
+        if (RegexUtil.isPhoneInvalid(phone)) {
+            return Result.fail("手机号格式有误，请重试");
+        }
+        //2.判断用户是否存在
+        User user = query().eq("phone", phone).one();
+        if (user == null) {
+            //3.不存在，返回错误信息
+            return Result.fail("用户不存在，请注册");
+        }
+        //4.存在，则验证用户信息
+        String password = loginFormDTO.getPassword();
+        String oldPassword = user.getPassword();
+        if (!password.equals(oldPassword)) {
+            //5.验证不通过，返回错误信息
+            return Result.fail("密码错误，请重新输入");
+        }
+        //6.验证通过，保存用户信息到redis
+        //6.1 随机生成token作为登录令牌
+        String token = UUID.randomUUID().toString(true);
+        //6.2将user对象转换成HashMap存储
+        UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
+        logger.info("存储对象数据：{}",userDTO);
+        Map<String, Object> map = BeanUtil.beanToMap(userDTO, new HashMap<>(), CopyOptions.create().setIgnoreNullValue(true).setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
+        //6.3存储
+        stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + phone, map);
+        //6.4设置token有效期
+        stringRedisTemplate.expire(LOGIN_USER_KEY + token ,LOGIN_USER_TTL, TimeUnit.MINUTES);
+        //7.返回token
+        logger.info("登录成功！");
+        return Result.ok(token);
     }
 
+    /**
+     * 用户注册
+     * @param user
+     * @return
+     */
     @Override
     public Result register(User user) {
         //1.判断用户是否已经注册
@@ -81,7 +121,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         logger.info("{}用户注册成功!", user.getNickName());
         return Result.ok("注册成功！");
     }
-
     /**
      * 通过手机验证码登录
      * @param loginFormDTO
