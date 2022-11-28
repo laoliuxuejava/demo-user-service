@@ -40,5 +40,6 @@ public class UserController {
     public Result loginByPassword(@RequestBody LoginFormDTO loginFormDTO) {
         return userService.loginByPassword(loginFormDTO);
     }
+
 }
 

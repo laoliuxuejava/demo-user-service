@@ -1,8 +1,10 @@
 package com.example.demouserservice.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.demouserservice.entity.User;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * @Author guser
@@ -10,4 +12,7 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface UserMapper extends BaseMapper<User> {
+
+    //自定义分页查询，需要配置映射文件，即xml文件
+    Page<User> selectPageVo(@Param("page") Page<User> page, @Param("age") Integer age);
 }

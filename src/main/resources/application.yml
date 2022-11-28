@@ -19,3 +19,12 @@ spring:
         max-idle: 10
         time-between-eviction-runs: 10s
 
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  #用户查看mybatis-plus执行的sql语句
+
+  #设置mybatis-plus的全局配置
+#  global-config:
+#    db-config:
+#      table-prefix: t_ #可用来配置全局的实体类映射的表名前缀
+#      id-type: auto #用于全局主键生成策略

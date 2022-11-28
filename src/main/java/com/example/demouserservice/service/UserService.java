@@ -19,4 +19,5 @@ public interface UserService {
     Result loginByPassword(LoginFormDTO loginFormDTO);
 
     Result register(User user);
+
 }

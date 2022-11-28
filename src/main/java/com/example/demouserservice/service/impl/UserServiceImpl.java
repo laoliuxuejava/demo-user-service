@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.example.demouserservice.constants.RedisConstants.*;
 import static com.example.demouserservice.utils.DateUtil.generationDateTime;
-import static com.example.demouserservice.utils.UserIdProduceUtil.userId;
 
 /**
  * (User)表服务实现类
@@ -52,11 +51,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             //2.如果不符合，返回错误信息
             return Result.fail("手机号格式不正确！");
         }
-        //3.符合，生成随机验证码
+        //3.查询用户是否存在
+        User user = query().eq("phone", phone).one();
+        if (user == null) {
+            //3.1不存在，返回错误信息
+            return Result.fail("用户不存在，请注册！");
+        }
+        //4.存在，生成随机验证码
         String code = RandomUtil.randomNumbers(6);
-        //4.保存验证码到redis set key value ex 120 （ex 120 表示有效期120秒）
+        //5.保存验证码到redis set key value ex 120 （ex 120 表示有效期120秒）
         stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY +  phone, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
-        //5.发送验证码
+        //6.发送验证码
         logger.info("发送短信验证码成功，验证码：{}", code);
         return Result.ok();
     }
@@ -91,17 +96,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String token = UUID.randomUUID().toString(true);
         //6.2将user对象转换成HashMap存储
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
-        logger.info("存储对象数据：{}",userDTO);
         Map<String, Object> map = BeanUtil.beanToMap(userDTO, new HashMap<>(), CopyOptions.create().setIgnoreNullValue(true).setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
+        logger.info("存储对象数据：{}",map);
         //6.3存储
-        stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + phone, map);
+        stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + token, map);
         //6.4设置token有效期
         stringRedisTemplate.expire(LOGIN_USER_KEY + token ,LOGIN_USER_TTL, TimeUnit.MINUTES);
         //7.返回token
         logger.info("登录成功！");
         return Result.ok(token);
     }
-
     /**
      * 用户注册
      * @param user
@@ -115,12 +119,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return Result.fail("用户已存在！");
         }
         //2.对用户传进来的参数进行封装
-        user.setId(userId());
         user.setCreateTime(generationDateTime());
         save(user);
         logger.info("{}用户注册成功!", user.getNickName());
         return Result.ok("注册成功！");
     }
+
     /**
      * 通过手机验证码登录
      * @param loginFormDTO
@@ -134,20 +138,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             //2.如果不符合，返回错误信息
             return Result.fail("手机号格式错误");
         }
-        //3.从redis获取验证码并校验
+        //3.根据手机号查询用户 select * from demo-user-service where phone = ? (这里的query方法需要继承mybatis里面的ServiceImpl实现类）
+        User user = query().eq("phone", phone).one();
+        //4.判断用户是否存在'
+        if (user == null) {
+            //4.1不存在，创建新用户并保存到数据库
+            return Result.fail("用户尚未注册，请注册后登录");
+        }
+        //5.从redis获取验证码并校验
         String cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
         String code = loginFormDTO.getCode();
-        //3.1选择登录方式（验证码或者密码）
+        //6.选择登录方式（验证码或者密码）
         if (cacheCode == null || !cacheCode.equals(code)) {
-            //3.1 不一致，返回错误信息
+            //6.1 不一致，返回错误信息
             return Result.fail("验证码错误");
-        }
-        //4.一致，根据手机号查询用户 select * from demo-user-service where phone = ? (这里的query方法需要继承mybatis里面的ServiceImpl实现类）
-        User user = query().eq("phone", phone).one();
-        //5.判断用户是否存在'
-        if (user == null) {
-            //6.不存在，创建新用户并保存到数据库
-            return Result.fail("用户尚未注册，请注册后登录");
         }
         //7.保存用户信息到redis中
         //7.1随机生成token，作为登录令牌

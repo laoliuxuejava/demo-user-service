@@ -1,9 +1,14 @@
 package com.example.demouserservice.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
+import lombok.Data;
 
 import java.util.Date;
+
+import static com.example.demouserservice.constants.SystemConstants.DEFAULT_NICK;
 
 /**
  * (User)实体类
@@ -11,16 +16,21 @@ import java.util.Date;
  * @author makejava
  * @since 2022-11-24 16:47:04
  */
+//这是实体类映射的表名
+@TableName("user")
+@Data
 public class User {
     private static final long serialVersionUID = 143996525303347145L;
     /**
      * 用户id,系统自动生成
      */
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private String id;
+    @TableId(value = "id")  //将属性所对应的字段制定为主键，value值用于指定主键字段,type用于主键的生成策略(默认采用雪花算法，即UUID)
+    private Long id;
     /**
      * 用户昵称
      */
+    //用于指定属性所对应的字段名
+    @TableField(value = "nick_name")
     private String nickName;
     /**
      * 性别
@@ -45,8 +55,7 @@ public class User {
     /**
      * 账户头像
      */
-    @Builder.Default
-    private String icon = "https://cn.bing.com/images/search?q=%e5%a4%b4%e5%83%8f&id=B7D4FD37CAE8DBF666B9B700A835C602789CC3FA&FORM=IQFRBA";
+    private String icon = DEFAULT_NICK;
     /**
      * 用户注册时间
      */
@@ -58,86 +67,8 @@ public class User {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Date updateTime;
 
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getNickName() {
-        return nickName;
-    }
-
-    public void setNickName(String nickName) {
-        this.nickName = nickName;
-    }
-
-    public String getSex() {
-        return sex;
-    }
-
-    public void setSex(String sex) {
-        this.sex = sex;
-    }
-
-    public Integer getAge() {
-        return age;
-    }
-
-    public void setAge(Integer age) {
-        this.age = age;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getIcon() {
-        return icon;
-    }
-
-    public void setIcon(String icon) {
-        this.icon = icon;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
+//    @Version //表示乐观锁的版本号
+//    private Integer version;
 
 }
 
