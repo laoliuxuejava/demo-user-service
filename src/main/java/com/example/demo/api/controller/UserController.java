@@ -27,17 +27,18 @@ public class UserController {
     }
 
     @PostMapping(value = "register")
-    public Result register(@RequestBody User user){
+    @ResponseBody
+    public Result register(User user){
         return userService.register(user);
     }
 
     @PostMapping(value = "loginByCode")
-    public Result loginByCode(@RequestBody LoginFormDTO loginFormDTO) {
+    public Result loginByCode(LoginFormDTO loginFormDTO) {
         return userService.loginByCode(loginFormDTO);
     }
 
     @PostMapping("loginByPassword")
-    public Result loginByPassword(@RequestBody LoginFormDTO loginFormDTO) {
+    public Result loginByPassword(LoginFormDTO loginFormDTO) {
         return userService.loginByPassword(loginFormDTO);
     }
 
