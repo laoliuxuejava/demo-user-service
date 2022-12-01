@@ -1,6 +1,6 @@
-package com.example.demo.utils;
+package com.example.demo.infra.utils;
 
-import com.example.demo.dto.UserDTO;
+import com.example.demo.domain.dto.UserDTO;
 
 /**
  * @Author guser

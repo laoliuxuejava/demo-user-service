@@ -1,6 +1,6 @@
 package com.example.demo.config;
 
-import com.example.demo.utils.LoginInterceptor;
+import com.example.demo.infra.utils.LoginInterceptor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

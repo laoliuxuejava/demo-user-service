@@ -33,14 +33,6 @@ public class User {
     @TableField(value = "nick_name")
     private String nickName;
     /**
-     * 性别
-     */
-    private String sex;
-    /**
-     * 年龄
-     */
-    private Integer age;
-    /**
      * 手机号
      */
     private String phone;
@@ -61,11 +53,6 @@ public class User {
      */
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Date createTime;
-    /**
-     * 信息更新时间
-     */
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Date updateTime;
 
 //    @Version //表示乐观锁的版本号
 //    private Integer version;

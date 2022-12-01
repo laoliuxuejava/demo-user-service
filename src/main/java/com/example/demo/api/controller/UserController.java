@@ -1,7 +1,7 @@
 package com.example.demo.api.controller;
 
-import com.example.demo.dto.LoginFormDTO;
-import com.example.demo.dto.Result;
+import com.example.demo.domain.dto.LoginFormDTO;
+import com.example.demo.domain.dto.Result;
 import com.example.demo.domain.entity.User;
 import com.example.demo.app.service.UserService;
 import org.springframework.web.bind.annotation.*;

@@ -5,13 +5,13 @@ import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.demo.dao.mapper.UserMapper;
-import com.example.demo.dto.LoginFormDTO;
-import com.example.demo.dto.Result;
-import com.example.demo.dto.UserDTO;
-import com.example.demo.domain.entity.User;
 import com.example.demo.app.service.UserService;
-import com.example.demo.utils.RegexUtil;
+import com.example.demo.domain.dto.LoginFormDTO;
+import com.example.demo.domain.dto.Result;
+import com.example.demo.domain.dto.UserDTO;
+import com.example.demo.domain.entity.User;
+import com.example.demo.infra.mapper.UserMapper;
+import com.example.demo.infra.utils.RegexUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.example.demo.constants.RedisConstants.*;
-import static com.example.demo.utils.DateUtil.generationDateTime;
+import static com.example.demo.infra.utils.DateUtil.generationDateTime;
 
 /**
  * (User)表服务实现类

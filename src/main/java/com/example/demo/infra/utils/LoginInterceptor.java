@@ -1,7 +1,7 @@
-package com.example.demo.utils;
+package com.example.demo.infra.utils;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.example.demo.dto.UserDTO;
+import com.example.demo.domain.dto.UserDTO;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.HandlerInterceptor;
 
